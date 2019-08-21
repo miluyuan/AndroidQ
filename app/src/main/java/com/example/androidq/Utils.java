@@ -23,7 +23,6 @@ import android.provider.Settings;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -98,9 +97,9 @@ public class Utils {
      * @param uri：多媒体数据库的Uri
      * @param context
      * @param mimeType：需要保存文件的mimeType
-     * @param displayName：显示的文件名字
+     * @param imgName：显示的文件名字
      * @param description：文件描述信息
-     * @param saveFileName：需要保存的文件名字
+     * @param bmp：需要保存的文件名字
      * @param saveSecondaryDir：保存的二级目录
      * @param savePrimaryDir：保存的一级目录
      * @return 返回插入数据对应的uri

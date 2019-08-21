@@ -1,5 +1,4 @@
-
-#### 文档说明
+文档说明
 
 1. 本文档基于[谷歌AndroidQ官方文档](https://developer.android.google.cn/preview)和[华为Q版本应用兼容性整改指导](https://developer.huawei.com/consumer/cn/devservice/doc/50127)(华为的有点过时)
 
@@ -178,7 +177,7 @@ manager.notify(445456, notification);
 
 #### 解决方法
 
-1. 停用过滤视图，使用旧版存储模式
+##### 方法一、停用过滤视图，使用旧版存储模式
 
    ```xml
    <manifest ... >
@@ -189,9 +188,7 @@ manager.notify(445456, notification);
    </manifest>
    ```
 
-   
-
-2. 将文件存储到过滤视图中
+##### 方法二、将文件存储到过滤视图中
 
    ```java
    // /Android/data/com.example.androidq/files/Documents
@@ -202,7 +199,101 @@ manager.notify(445456, notification);
 
    **缺点：**随应用卸载而删除；
 
+​     
+
+##### 方法三、使用存储访问框架（SAF），由用户指定要读写的文件。
+
+​	这个功能Android 4.4（API: 19）就有，[官方文档在此](https://developer.android.google.cn/guide/topics/providers/document-provider)。
+
+
+
+##### 方法四、获取用户指定的某个目录的读写权限
+
+​	这种方式从Android5.0（Api 21）开始就有了。[官方文档](https://developer.android.google.cn/about/versions/android-5.0#Storage)
+
+1. 申请目录的访问权限
+
+   会打开系统的文件目录，由用户自己选择允许访问的目录，不用申请`WRITE/READ_EXTERNAL_STORAGE`权限。
+
+   ```java
+   Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
+   intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | 
+           Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);				
+   startActivityForResult(intent, REQ_CODE);
+   ```
+
+   执行上述代码后会出现类似如下图界面，点击‘允许访问“DuoKan”’按钮，
+
+   <img src="image/允许访问的目录.png" height="440"/>
+
+   允许了之后通过`onActivityResult()`的`intent.getData()`得到该目录的Uri，通过Uri可获取子目录和文件。这种方式的<b>缺点</b>是应用重装后权限失效，即使可以保存了这个Uri也没用。
+
+   ```java
+   Uri dirUri = intent.getData();
+   // 持久化；应用重装后权限失效，即使知道这个uri也没用
+   SPUtil.setValue(this, SP_DOC_KEY, dirUri.toString());
+   //重要：少这行代码手机重启后会失去权限
+   getContentResolver().takePersistableUriPermission(dirUri, 
+           Intent.FLAG_GRANT_READ_URI_PERMISSION);
+   ```
+
+   
+
+2. 通过Uri读写文件
+
+   - 创建文件
+
+     ```java
+     // 在mUri目录（‘DuoKan’目录）下创建'test.txt'文件
+     private void createFile() {
+         DocumentFile documentFile = DocumentFile.fromTreeUri(this, mUri);
+         DocumentFile file = documentFile.createFile("text/plain", "test.txt");
+         if (file != null && file.exists()) {
+             LogUtil.log(file.getName() + " created");
+         }
+     }
+     ```
+
+     主要用到DocumentFile类，和File类的方法类似，有isFile、isDirectory、exists、listFiles等方法
+
+   - 删除文件
+
+     ```java
+     //删除"test.txt"
+     private void deleteFile() {
+         DocumentFile documentFile = DocumentFile.fromTreeUri(this, mUri);
+         // listFiles()，列出所有的子文件和文件夹
+         for (DocumentFile file : documentFile.listFiles()) {
+             if (file.isFile() && "test.txt".equals(file.getName())) {
+                 boolean delete = file.delete();
+                 LogUtil.log("deleteFile: " + delete);
+                 break;
+             }
+         }
+     }
+     ```
+
      
+
+   - 写入数据
+
+     ```java
+     private void writeFile(Uri uri) {
+         try {
+             ParcelFileDescriptor pfd = getContentResolver().openFileDescriptor(uri, "w");
+             //这种方法会覆盖原来文件内容
+             OutputStreamWriter output = 
+                     new OutputStreamWriter(new FileOutputStream(pfd.getFileDescriptor()));
+             // 不能传uri.toString(),否则FileNotFoundException
+             // OutputStreamWriter output = new OutputStreamWriter(new FileOutputStream(uri.toString(), true));
+             output.write("这是一段文件写入测试\n");
+             output.close();
+             LogUtil.log("写入成功。");
+         } catch (IOException e) {
+             LogUtil.log(e);
+         }
+     }
+     ```
 
 3. 
 

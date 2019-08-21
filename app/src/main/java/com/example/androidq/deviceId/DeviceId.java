@@ -1,13 +1,19 @@
 package com.example.androidq.deviceId;
 
+import android.Manifest;
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.os.Build;
 import android.provider.Settings;
+import android.telephony.TelephonyManager;
 
 import com.example.androidq.LogUtil;
 
 import java.io.UnsupportedEncodingException;
+import java.util.Objects;
 import java.util.UUID;
+
+import androidx.core.app.ActivityCompat;
 
 /**
  * @author wzw
@@ -16,7 +22,7 @@ import java.util.UUID;
 public class DeviceId {
 
     private static String makeDeviceId(Context context) {
-        String  deviceInfo = new StringBuilder()
+        String deviceInfo = new StringBuilder()
                 .append(Build.BOARD).append("#")
                 .append(Build.BRAND).append("#")
                 .append(Build.CPU_ABI).append("#")
@@ -44,7 +50,7 @@ public class DeviceId {
     public static String makeDeviceId() {
         try {
             String s = makeDeviceInfo();
-            LogUtil.log("makeDeviceInfo: "+ s);
+            LogUtil.log("makeDeviceInfo: " + s);
             return UUID.nameUUIDFromBytes(s.getBytes("utf8")).toString();
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
@@ -74,4 +80,91 @@ public class DeviceId {
 //                .append(serial);//66J0218B19000977
         return builder.toString();
     }
+
+    /**
+     * 获取无卡模式设备id
+     *
+     * @param context 上下文
+     */
+    public static String getTypeNoneDeviceId(Context context) {
+        TelephonyManager telephonyManager = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
+        if (ActivityCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
+            LogUtil.log("Have not permission to obtain DeviceId");
+            return "";
+        }
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+            return telephonyManager.getDeviceId(TelephonyManager.PHONE_TYPE_NONE);
+        } else {
+            return "";
+        }
+    }
+
+    /**
+     * 获取GSM模式设备id
+     *
+     * @param context 上下文
+     */
+    public static String getTypeGSMDeviceId(Context context) {
+        TelephonyManager telephonyManager = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
+        if (ActivityCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
+            LogUtil.log("Have not permission to obtain DeviceId");
+            return "";
+        }
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+            return telephonyManager.getDeviceId(TelephonyManager.PHONE_TYPE_GSM);
+        } else {
+            return "";
+        }
+    }
+
+    /**
+     * 获取CDMA模式设备id
+     *
+     * @param context 上下文
+     */
+    public static String getTypeCDMADeviceId(Context context) {
+        TelephonyManager telephonyManager = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
+        if (ActivityCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
+            LogUtil.log("Have not permission to obtain DeviceId");
+            return "";
+        }
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+            return telephonyManager.getDeviceId(TelephonyManager.PHONE_TYPE_CDMA);
+        } else {
+            return "";
+        }
+    }
+
+    /**
+     * 获取SIP模式设备id
+     *
+     * @param context 上下文
+     */
+    public static String getTypeSIPDeviceId(Context context) {
+        TelephonyManager telephonyManager = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
+        if (ActivityCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
+            LogUtil.log("Have not permission to obtain DeviceId");
+            return "";
+        }
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+            return telephonyManager.getDeviceId(TelephonyManager.PHONE_TYPE_SIP);
+        } else {
+            return "";
+        }
+    }
+
+    /**
+     * 获取设备IMSI
+     *
+     * @param context 上下文
+     */
+    public static String getIMSI(Context context) {
+        TelephonyManager telephonyManager = (TelephonyManager) context.getSystemService(Context.TELEPHONY_SERVICE);
+        if (ActivityCompat.checkSelfPermission(context, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
+            LogUtil.log("Have not permission to obtain IMSI");
+            return "000000";
+        }
+        return Objects.requireNonNull(telephonyManager).getSubscriberId();
+    }
+
 }

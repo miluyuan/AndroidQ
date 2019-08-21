@@ -73,16 +73,15 @@ public class FolderTreeActivity extends AppCompatActivity {
 
     private void writeFile(Uri uri) {
         try {
-            ParcelFileDescriptor pfd =
-                    getContentResolver().openFileDescriptor(uri, "w");
+            ParcelFileDescriptor pfd = getContentResolver().openFileDescriptor(uri, "w");
+            //这种方法只能覆盖原来文件内容
             OutputStreamWriter output = new OutputStreamWriter(new FileOutputStream(pfd.getFileDescriptor()));
-            // 不能直接uri.toString(),否则FileNotFoundException
-//            OutputStreamWriter output = new OutputStreamWriter(new FileOutputStream(uri.toString(), true));
+            // 不能传uri.toString(),否则FileNotFoundException
+            // OutputStreamWriter output = new OutputStreamWriter(new FileOutputStream(uri.toString(), true));
             output.write("这是一段文件写入测试\n");
             output.close();
             LogUtil.log("写入成功。");
         } catch (IOException e) {
-            e.printStackTrace();
             LogUtil.log(e);
         }
     }
@@ -142,9 +141,8 @@ public class FolderTreeActivity extends AppCompatActivity {
 
         Uri dirUri = data.getData();
         mUri = dirUri;
-        // 应用重装后权限失效，即使知道这个uri也没有
+        // 持久化；应用重装后权限失效，即使知道这个uri也没用
         SPUtil.setValue(this, SP_DOC_KEY, dirUri.toString());
-
         //重要：少这行代码手机重启后会失去权限
         getContentResolver().takePersistableUriPermission(dirUri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
 
@@ -161,11 +159,6 @@ public class FolderTreeActivity extends AppCompatActivity {
             tv.setText(tmp);
         }
 
-
-//        getSupportFragmentManager()
-//                .beginTransaction()
-//                .replace(R.id.fragmentContainer, null)
-//                .commit();
     }
 
     /**
