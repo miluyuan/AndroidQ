@@ -1,6 +1,8 @@
 package com.example.androidq;
 
+import android.app.Activity;
 import android.content.Intent;
+import android.graphics.Rect;
 import android.net.Uri;
 import android.net.wifi.WifiConfiguration;
 import android.os.Bundle;
@@ -12,7 +14,6 @@ import android.widget.Toast;
 import com.example.androidq.background.BackgroundStartActivity;
 import com.example.androidq.deviceId.DeviceIdActivity;
 import com.example.androidq.permission.BackgroundLocationActivity;
-import com.example.androidq.storage.ScopedStorageActivity;
 import com.example.androidq.storage.StorageMainActivity;
 
 import java.io.File;

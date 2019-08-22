@@ -1,18 +1,16 @@
 package com.example.androidq.deviceId;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
-import android.content.Context;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
-import android.provider.Settings;
 import android.telephony.TelephonyManager;
 
 import com.example.androidq.LogUtil;
 import com.example.androidq.R;
 
-import java.io.UnsupportedEncodingException;
 import java.util.UUID;
 
 import androidx.annotation.NonNull;
@@ -34,7 +32,10 @@ public class DeviceIdActivity extends AppCompatActivity {
 //        printDeviceId();
 //        getAndroidId(this);
 
-        LogUtil.log("模拟deviceID：" + makeDeviceId());
+        LogUtil.log("deviceId：" + getDeviceId());
+        LogUtil.log("makeDeviceId：" + makeDeviceId());
+        LogUtil.log("AndroidId：" + DeviceId.getAndroidId(this));
+
     }
 
     private String makeDeviceId() {
@@ -43,7 +44,7 @@ public class DeviceIdActivity extends AppCompatActivity {
             requestPermissions(new String[]{Manifest.permission.READ_PHONE_STATE}, 33);
             return "Permission Denied.";
         }
-        return DeviceId.makeDeviceId();
+        return DeviceId.makeDeviceId(this);
     }
 
     /**
@@ -54,14 +55,13 @@ public class DeviceIdActivity extends AppCompatActivity {
      * 3. 在小于Q的系统上返回正常
      */
     @TargetApi(Build.VERSION_CODES.M)
-    private void printDeviceId() {
+    private String getDeviceId() {
         if (checkSelfPermission(Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED) {
             requestPermissions(new String[]{Manifest.permission.READ_PHONE_STATE}, 33);
+            return "Permission Denied.";
         } else {
-            TelephonyManager tm = (TelephonyManager) getSystemService(TELEPHONY_SERVICE);
-            tm.getDeviceId();
             //866976045561713
-            LogUtil.log(tm.getDeviceId());
+            return DeviceId.getDeviceId(this);
         }
     }
 
@@ -76,31 +76,8 @@ public class DeviceIdActivity extends AppCompatActivity {
         }
     }
 
-    /**
-     * AndroidId
-     *
-     * @param context
-     * @return
-     */
-    private String getAndroidId(Context context) {
-        // 这两个ID相同
-        String androidId = Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID);
-        String id = Settings.System.getString(context.getContentResolver(),
-                Settings.Secure.ANDROID_ID);
-        //496836e3a48d2d9d
-        LogUtil.log("Android_id：" + androidId);
-        LogUtil.log("id：" + id);
-        String temp = androidId;
 
-        try {
-            return UUID.nameUUIDFromBytes(temp.getBytes("utf8")).toString();
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        }
-
-        return androidId;
-    }
-
+    @SuppressLint("MissingPermission")
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);

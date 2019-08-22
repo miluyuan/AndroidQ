@@ -45,11 +45,13 @@ Build.getSerial();
 
 1. 方案一：
 
-   使用AndroidId代替，缺点是应用签署密钥或用户（如系统恢复出产设置）不同返回的Id不同。
+   使用AndroidId代替，缺点是应用签署密钥或用户（如系统恢复出产设置）不同返回的Id不同。与实际测试结果相符。
+
+   经实际测试：相同签名密钥的不同应用androidId相同，不同签名的应用androidId不同。恢复出产设置或升级系统没测。
 
    ```java
    // 返回：496836e3a48d2d9d
-   String id = Settings.System.getString(context.getContentResolver(),
+   String androidId = Settings.System.getString(context.getContentResolver(),
            Settings.Secure.ANDROID_ID);
    ```
 
@@ -58,13 +60,15 @@ Build.getSerial();
 2. 方案二：
 
    通过硬件信息拼接，缺点是还是不能保证唯一。
-
+   经测试：似乎与方案一比更稳定，不受密钥影响，但非官方建议，没安全感。
+   
    ```java
    private static String makeDeviceId(Context context) {
        String  deviceInfo = new StringBuilder()
                .append(Build.BOARD).append("#")
                .append(Build.BRAND).append("#")
-               .append(Build.CPU_ABI).append("#")
+           	   //CPU_ABI，这个值和appp使用的so库是arm64-v8a还是armeabi-v7a有关，舍弃
+               //.append(Build.CPU_ABI).append("#")
                .append(Build.DEVICE).append("#")
                .append(Build.DISPLAY).append("#")
                .append(Build.HOST).append("#")
@@ -77,17 +81,16 @@ Build.getSerial();
                .append(Build.USER).append("#")
                .toString();
        try {
+          //22a49a46-b39e-36d1-b75f-a0d0b9c72d6c
           return UUID.nameUUIDFromBytes(deviceInfo.getBytes("utf8")).toString();
        } catch (UnsupportedEncodingException e) {
            e.printStackTrace();
        }
        String androidId = Settings.System.getString(context.getContentResolver(),
-                   Settings.Secure.ANDROID_ID);
+                Settings.Secure.ANDROID_ID);
        return androidId;
    }
    ```
-
-   
 
 
 
@@ -173,7 +176,7 @@ manager.notify(445456, notification);
 1. 在AndroidQ上运行：
    *　`targetSdkVersion<Q`，没影响；
    *　`targetSdkVersion>=Q`，默认启用过滤视图，应用以外的文件需要通过[存储访问框架](https://developer.android.google.cn/guide/topics/providers/document-provider)（SAF，StorageAccessFramework）读写。
-2. sdaf
+2. 
 
 #### 解决方法
 

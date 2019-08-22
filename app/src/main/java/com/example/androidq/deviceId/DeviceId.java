@@ -1,6 +1,9 @@
 package com.example.androidq.deviceId;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
+import android.annotation.TargetApi;
+import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.os.Build;
@@ -20,8 +23,25 @@ import androidx.core.app.ActivityCompat;
  * @date 2019/8/19 10:25
  */
 public class DeviceId {
+    /**
+     * AndroidId
+     *
+     * @param context
+     * @return
+     */
+    public static String getAndroidId(Context context) {
+        // 这两个ID相同
+        String androidId = Settings.Secure.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID);
+        String id = Settings.System.getString(context.getContentResolver(), Settings.Secure.ANDROID_ID);
+        //HW mate20: 496836e3a48d2d9d
+        //Google pixel: f06c5549707adb8b
+        LogUtil.log("Android_id：" + androidId);
+        LogUtil.log("id：" + id);
 
-    private static String makeDeviceId(Context context) {
+        return androidId;
+    }
+
+    public static String makeDeviceId(Context context) {
         String deviceInfo = new StringBuilder()
                 .append(Build.BOARD).append("#")
                 .append(Build.BRAND).append("#")
@@ -42,43 +62,24 @@ public class DeviceId {
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }
-        String androidId = Settings.System.getString(context.getContentResolver(),
+        return Settings.System.getString(context.getContentResolver(),
                 Settings.Secure.ANDROID_ID);
-        return androidId;
     }
 
-    public static String makeDeviceId() {
-        try {
-            String s = makeDeviceInfo();
-            LogUtil.log("makeDeviceInfo: " + s);
-            return UUID.nameUUIDFromBytes(s.getBytes("utf8")).toString();
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        }
-
-        return null;
-    }
-
-    public static String makeDeviceInfo() {
-        //Build.getSerial()也不再可用
-//        String serial = Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1 ? Build.getSerial() : Build.SERIAL;
-        String serial = Build.SERIAL;
-        StringBuilder builder = new StringBuilder()
-                .append(Build.BOARD).append("\n")//HMA
-                .append(Build.BRAND).append("\n")//HUAWEI
-                .append(Build.CPU_ABI).append("\n")//arm64-v8a
-                .append(Build.DEVICE).append("\n")//HWHMA
-                .append(Build.DISPLAY).append("\n")//HMA-AL00 9.0.0.200(C00E200R1P21)
-                .append(Build.HOST).append("\n")//szvjk004cna
-                .append(Build.ID).append("\n")//HUAWEIHMA-AL00
-                .append(Build.MANUFACTURER).append("\n")//HUAWEI
-                .append(Build.MODEL).append("\n")//HMA-AL00
-                .append(Build.PRODUCT).append("\n")//HMA-AL00
-                .append(Build.TAGS).append("\n")//release-keys
-                .append(Build.TYPE).append("\n")//user
-                .append(Build.USER).append("\n");//test
-//                .append(serial);//66J0218B19000977
-        return builder.toString();
+    /**
+     * 1. target>=AndroidQ时在AndroidQ系统上抛出异常
+     * SecurityException: getDeviceId: The user 10196 does not meet the requirements to access device identifiers.
+     * <p>
+     * 2. target<Q时在Q系统上返回null
+     * 3. 在小于Q的系统上返回正常
+     */
+    @SuppressLint("MissingPermission")
+    @TargetApi(Build.VERSION_CODES.M)
+    public static String getDeviceId(Context context) {
+        TelephonyManager tm = (TelephonyManager) context.getSystemService(Activity.TELEPHONY_SERVICE);
+        //866976045561713
+        LogUtil.log(tm.getDeviceId());
+        return tm.getDeviceId();
     }
 
     /**
