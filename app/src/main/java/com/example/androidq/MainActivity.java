@@ -12,6 +12,7 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.example.androidq.background.BackgroundStartActivity;
+import com.example.androidq.clipboard.ClipboardActivity;
 import com.example.androidq.deviceId.DeviceIdActivity;
 import com.example.androidq.permission.BackgroundLocationActivity;
 import com.example.androidq.storage.StorageMainActivity;
@@ -40,6 +41,8 @@ public class MainActivity extends AppCompatActivity {
 
         findViewById(R.id.btn4).setOnClickListener(view ->
                 startActivity(new Intent(MainActivity.this, BackgroundLocationActivity.class)));
+        findViewById(R.id.btn5).setOnClickListener(view ->
+                startActivity(new Intent(MainActivity.this, ClipboardActivity.class)));
 
     }
 
